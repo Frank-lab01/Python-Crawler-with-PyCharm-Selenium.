@@ -1,0 +1,70 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pandas as pd
+import time
+
+#opening chrome driver
+driver = webdriver.Chrome()
+
+#maximizing window
+driver.maximize_window()
+
+#navigate to the desired website
+driver.get('https://twitter.com/search?q=%23LAGOS&src=typed_query&f=top')
+
+#wait 15 seconds
+wait = WebDriverWait(driver, 15)
+
+#creating a file and exporting all the printed elements and data
+file = open('Lasgiditweet44.csv', 'w')
+
+#using try and except to continue scrolling while true and break when selenium reaches bottom
+try:
+    #scroll down to the end of the page
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    while True:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
+        #locating all elements with the xpath: "div" tag, attribute name "lang"
+        elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@lang]")))
+        #locating all elements with the xpath: "a" tag, attribute name "class"
+        tweeps = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//a[@class]")))
+        #looping over the tweets
+        for element in elements:
+            #finding all elements with the xpath: "img" tag, attribute name "src"
+            images = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//img[@src]")))
+            #finding all elements with the xpath: "p" tag, attribute name "lang"
+            texts = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@lang='en']")))
+            #finding all elements with the xpath: "a" tag, attribute name "class"
+            handles = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//a[@class]")))
+            #finding all elements with the xpath: "span" tag, attribute name "class"
+            times = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//span[@class]")))
+
+            #printing the links to the images
+            for image in images:
+                print(image.get_attribute('src'))
+                file.write(image.get_attribute('src'))
+            #printing the text of the tweets
+            for text in texts:
+                print(text.text)
+                file.write(text.text)
+            #printing the twitter handles of the tweeps
+            for handle in handles:
+                print(handle.get_attribute('href'))
+                file.write(handle.get_attribute('href'))
+            #printing the date and time of the tweets
+            for time in times:
+                print(time.text)
+                file.write(time.text)
+
+#breaking code, printing and quitting when it reaches the last page
+except:
+    print('Reached bottom')
+    file.close()
+    driver.close()
